@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# (Re)lanza swaybg con el fondo actual. Arranca el nuevo antes de matar el
+# viejo para que no haya parpadeo.
+bg="$(readlink -f "$HOME/.config/omadeb/current/background" 2>/dev/null)"
+[[ -f $bg ]] || exit 0
+
+old="$(pgrep -x swaybg || true)"
+setsid -f swaybg -i "$bg" -m fill >/dev/null 2>&1
+if [[ -n $old ]]; then
+  sleep 0.4
+  kill $old 2>/dev/null || true
+fi

@@ -1,0 +1,4 @@
+packaging/out/
+packaging/stage/
+*.bak
+*.log

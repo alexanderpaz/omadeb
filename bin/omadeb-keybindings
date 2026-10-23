@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Muestra los atajos que tienen descripción (bindd) en un buscador (SUPER+K).
+hyprctl binds -j | jq -r '
+  def mods:
+    [ (if (.modmask / 64 | floor) % 2 == 1 then "SUPER" else empty end),
+      (if (.modmask / 4  | floor) % 2 == 1 then "CTRL"  else empty end),
+      (if (.modmask / 8  | floor) % 2 == 1 then "ALT"   else empty end),
+      (if  .modmask             % 2 == 1 then "SHIFT" else empty end) ];
+  def keyname:
+    if .key | startswith("code:") then
+      ({"code:10":"1","code:11":"2","code:12":"3","code:13":"4","code:14":"5",
+        "code:15":"6","code:16":"7","code:17":"8","code:18":"9","code:19":"0",
+        "code:20":"-","code:21":"="}[.key] // .key)
+    else .key end;
+  .[] | select(.has_description)
+      | ((mods + [keyname]) | join(" + ")) as $combo
+      | "\($combo)\t\(.description)"' |
+  awk -F'\t' '!seen[$0]++ { printf "%-32s %s\n", $1, $2 }' |
+  fuzzel --dmenu --prompt $'\U000F030C  ' --width 70 --lines 20 >/dev/null

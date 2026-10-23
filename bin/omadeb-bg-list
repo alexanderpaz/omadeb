@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Lista los fondos de un tema (por defecto el actual): los del tema y los
+# que el usuario haya añadido en ~/.config/omadeb/backgrounds/<tema>/
+theme="${1:-$(cat "$HOME/.config/omadeb/current/theme.name")}"
+
+for dir in "$HOME/.local/share/omadeb/themes/$theme/backgrounds" "$HOME/.config/omadeb/backgrounds/$theme"; do
+  [[ -d $dir ]] && find "$dir" -maxdepth 1 -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' \)
+done | sort

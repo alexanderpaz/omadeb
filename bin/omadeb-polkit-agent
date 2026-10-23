@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Lanza el agente polkit de MATE (diálogos gráficos de contraseña).
+for agent in \
+  /usr/libexec/polkit-mate-authentication-agent-1 \
+  /usr/lib/x86_64-linux-gnu/polkit-mate/polkit-mate-authentication-agent-1 \
+  /usr/lib/mate-polkit/polkit-mate-authentication-agent-1; do
+  [[ -x $agent ]] && exec "$agent"
+done
+echo "omadeb: no se encontró el agente polkit de MATE" >&2
+exit 1

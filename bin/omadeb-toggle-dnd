@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Alterna el modo "no molestar" de mako.
+if makoctl mode | grep -q do-not-disturb; then
+  makoctl mode -r do-not-disturb >/dev/null
+  notify-send -u low -t 2000 "Notificaciones activadas"
+else
+  notify-send -u low -t 1500 "No molestar"
+  sleep 1.6
+  makoctl mode -a do-not-disturb >/dev/null
+fi
+pkill -RTMIN+10 waybar || true

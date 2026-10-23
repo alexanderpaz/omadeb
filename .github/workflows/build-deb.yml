@@ -1,0 +1,30 @@
+name: build-deb
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deb:
+    runs-on: ubuntu-latest
+    container: debian:trixie
+    steps:
+      - name: Dependencias base
+        run: apt-get update && apt-get install -y --no-install-recommends sudo git ca-certificates file
+      - uses: actions/checkout@v4
+      - name: Compilar y empaquetar
+        run: packaging/build-debs.sh
+      - name: Nombre estable del artefacto
+        run: cp packaging/out/omadeb-hyprland_*.deb packaging/out/omadeb-hyprland_amd64.deb
+      - uses: actions/upload-artifact@v4
+        with:
+          name: omadeb-hyprland
+          path: packaging/out/omadeb-hyprland_amd64.deb
+      - name: Publicar Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: packaging/out/omadeb-hyprland_amd64.deb

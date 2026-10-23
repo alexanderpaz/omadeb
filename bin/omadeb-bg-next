@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Pasa al siguiente fondo del tema actual (SUPER+CTRL+SPACE) y lo recuerda.
+set -euo pipefail
+
+CURRENT="$HOME/.config/omadeb/current"
+theme="$(cat "$CURRENT/theme.name")"
+mapfile -t backgrounds < <(omadeb-bg-list "$theme")
+((${#backgrounds[@]})) || { notify-send "Fondo" "El tema no tiene fondos"; exit 1; }
+
+current="$(readlink -f "$CURRENT/background" 2>/dev/null || true)"
+next="${backgrounds[0]}"
+for i in "${!backgrounds[@]}"; do
+  if [[ ${backgrounds[$i]} == "$current" ]]; then
+    next="${backgrounds[$(((i + 1) % ${#backgrounds[@]}))]}"
+    break
+  fi
+done
+
+ln -sfn "$next" "$CURRENT/background"
+mkdir -p "$CURRENT/backgrounds"
+echo "$next" >"$CURRENT/backgrounds/$theme"
+omadeb-bg-restore

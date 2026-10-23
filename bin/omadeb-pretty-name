@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# vscode-dark → Vscode Dark
+sed -E 's/-/ /g; s/\b(.)/\u\1/g' <<<"$1"

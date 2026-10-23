@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+# Aplica un tema: genera los archivos de color desde templates/ + themes/<tema>/colors.toml
+# y recarga todo lo que esté corriendo.
+#   omadeb-theme-set vscode-dark
+set -euo pipefail
+
+OMADEB="$HOME/.local/share/omadeb"
+CURRENT="$HOME/.config/omadeb/current"
+
+name="${1:-}"
+if [[ -z $name || ! -f $OMADEB/themes/$name/colors.toml ]]; then
+  echo "uso: omadeb-theme-set <tema>" >&2
+  echo "temas: $(ls "$OMADEB/themes" | grep -v LICENSE | tr '\n' ' ')" >&2
+  exit 1
+fi
+src="$OMADEB/themes/$name"
+
+# --- Variables de color -------------------------------------------------------
+# Cada clave del colors.toml genera {{ clave }} (#rrggbb), {{ clave_strip }} (rrggbb)
+# y {{ clave_rgb }} (r,g,b).
+sedfile="$(mktemp)"
+trap 'rm -f "$sedfile"' EXIT
+
+while IFS='=' read -r key value; do
+  key="${key//[[:space:]]/}"
+  value="${value//[[:space:]\"]/}"
+  [[ $value =~ ^#[0-9a-fA-F]{6}$ ]] || continue
+  hex="${value#\#}"
+  rgb="$((16#${hex:0:2})),$((16#${hex:2:2})),$((16#${hex:4:2}))"
+  printf 's/{{ %s }}/%s/g\ns/{{ %s_strip }}/%s/g\ns/{{ %s_rgb }}/%s/g\n' \
+    "$key" "$value" "$key" "$hex" "$key" "$rgb" >>"$sedfile"
+done <"$src/colors.toml"
+
+icon_theme="Adwaita"
+if [[ -f $src/icons.theme ]]; then
+  candidate="$(tr -d '[:space:]' <"$src/icons.theme")"
+  [[ -d /usr/share/icons/$candidate ]] && icon_theme="$candidate"
+fi
+echo "s/{{ icon_theme }}/$icon_theme/g" >>"$sedfile"
+
+# --- Generar en un directorio nuevo y cambiarlo de golpe ----------------------
+mkdir -p "$CURRENT"
+staging="$CURRENT/theme.new"
+rm -rf "$staging"
+mkdir -p "$staging"
+
+for tpl in "$OMADEB"/templates/*.tpl; do
+  sed -f "$sedfile" "$tpl" >"$staging/$(basename "$tpl" .tpl)"
+done
+# Algunos temas traen su propio btop.theme más fino que la plantilla.
+[[ -f $src/btop.theme ]] && cp "$src/btop.theme" "$staging/btop.theme"
+
+rm -rf "$CURRENT/theme"
+mv "$staging" "$CURRENT/theme"
+echo "$name" >"$CURRENT/theme.name"
+
+# --- Fondo de pantalla: el último elegido para este tema, o el primero --------
+remembered="$CURRENT/backgrounds/$name"
+if [[ -f $remembered && -f $(cat "$remembered") ]]; then
+  bg="$(cat "$remembered")"
+else
+  bg="$(omadeb-bg-list "$name" | head -1)"
+fi
+[[ -n $bg ]] && ln -sfn "$bg" "$CURRENT/background"
+
+# --- GTK: claro u oscuro, e iconos --------------------------------------------
+if command -v gsettings >/dev/null; then
+  gset() { gsettings set org.gnome.desktop.interface "$@" 2>/dev/null || true; }
+  if [[ -f $src/light.mode ]]; then
+    gset color-scheme prefer-light
+    gset gtk-theme Adwaita
+  else
+    gset color-scheme prefer-dark
+    gset gtk-theme Adwaita-dark
+  fi
+  gset icon-theme "$icon_theme"
+fi
+
+# --- Recargar lo que esté corriendo -------------------------------------------
+if [[ -n ${HYPRLAND_INSTANCE_SIGNATURE:-} ]]; then
+  hyprctl reload >/dev/null
+  pkill -SIGUSR2 -x waybar || true
+  makoctl reload 2>/dev/null || true
+  pkill -SIGUSR2 -x btop || true
+  if pgrep -x swayosd-server >/dev/null; then
+    pkill -x swayosd-server
+    setsid -f swayosd-server >/dev/null 2>&1
+  fi
+  omadeb-bg-restore
+  notify-send -u low -t 2500 "Tema" "$(omadeb-pretty-name "$name")"
+fi

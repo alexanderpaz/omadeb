@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+# Menú principal de omadeb (SUPER+ALT+SPACE), hecho con fuzzel --dmenu.
+#   omadeb-menu [system|theme|capture|settings|clipboard]
+
+menu() {
+  # $1 = título, resto por stdin
+  local lines
+  lines=$(wc -l <<<"$2")
+  fuzzel --dmenu --prompt "$1  " --width 30 --lines "$lines" <<<"$2"
+}
+
+i_apps=$'\U000F003B' i_theme=$'\U000F03D8' i_bg=$'\U000F02F9' i_capture=$'\U000F0100'
+i_keys=$'\U000F030C' i_clip=$'\U000F014D' i_settings=$'\U000F0493' i_power=$'\U000F0425'
+i_lock=$'\U000F033E' i_sleep=$'\U000F04B2' i_logout=$'\U000F0343' i_restart=$'\U000F0709'
+i_wifi=$'\U000F05A9' i_bt=$'\U000F00AF' i_audio=$'\U000F057E' i_monitor=$'\U000F0379'
+i_dnd=$'\U000F009B' i_crop=$'\U000F019E' i_full=$'\U000F0293' i_edit=$'\U000F03EB'
+i_picker=$'\U000F020A'
+
+main_menu() {
+  case $(menu "Omadeb" "$i_apps  Aplicaciones
+$i_theme  Tema
+$i_bg  Siguiente fondo
+$i_capture  Captura
+$i_clip  Portapapeles
+$i_keys  Atajos de teclado
+$i_settings  Ajustes
+$i_power  Sistema") in
+    *Aplicaciones*) fuzzel ;;
+    *Tema*) theme_menu ;;
+    *fondo*) omadeb-bg-next ;;
+    *Captura*) capture_menu ;;
+    *Portapapeles*) clipboard_menu ;;
+    *Atajos*) omadeb-keybindings ;;
+    *Ajustes*) settings_menu ;;
+    *Sistema*) system_menu ;;
+  esac
+}
+
+system_menu() {
+  case $(menu "Sistema" "$i_lock  Bloquear
+$i_sleep  Suspender
+$i_logout  Cerrar sesión
+$i_restart  Reiniciar
+$i_power  Apagar") in
+    *Bloquear*) loginctl lock-session ;;
+    *Suspender*) systemctl suspend ;;
+    *sesión*) hyprctl dispatch exit ;;
+    *Reiniciar*) systemctl reboot ;;
+    *Apagar*) systemctl poweroff ;;
+  esac
+}
+
+theme_menu() {
+  local current choice
+  current="$(cat "$HOME/.config/omadeb/current/theme.name" 2>/dev/null)"
+  choice=$(
+    for dir in "$HOME"/.local/share/omadeb/themes/*/; do
+      name="$(basename "$dir")"
+      marker="  "
+      [[ $name == "$current" ]] && marker="● "
+      echo "$marker$(omadeb-pretty-name "$name")"
+    done | fuzzel --dmenu --prompt "$i_theme  " --width 30 --lines 12
+  ) || exit 0
+  choice="${choice:2}"
+  [[ -n $choice ]] && omadeb-theme-set "$(tr 'A-Z ' 'a-z-' <<<"$choice")"
+}
+
+capture_menu() {
+  case $(menu "Captura" "$i_crop  Región
+$i_full  Pantalla completa
+$i_edit  Región y editar
+$i_picker  Selector de color") in
+    *Región\ y*) omadeb-screenshot edit ;;
+    *Región*) omadeb-screenshot region ;;
+    *completa*) omadeb-screenshot output ;;
+    *color*) hyprpicker -a ;;
+  esac
+}
+
+settings_menu() {
+  case $(menu "Ajustes" "$i_audio  Audio
+$i_wifi  Wi-Fi y red
+$i_bt  Bluetooth
+$i_dnd  No molestar
+$i_monitor  Monitores (editar monitors.conf)
+$i_keys  Atajos propios (editar bindings.conf)") in
+    *Audio*) pavucontrol ;;
+    *Wi-Fi*) nm-connection-editor ;;
+    *Bluetooth*) blueman-manager ;;
+    *molestar*) omadeb-toggle-dnd ;;
+    *Monitores*) alacritty --class omadeb-floating -e nvim "$HOME/.config/hypr/monitors.conf" ;;
+    *Atajos*) alacritty --class omadeb-floating -e nvim "$HOME/.config/hypr/bindings.conf" ;;
+  esac
+}
+
+clipboard_menu() {
+  cliphist list | fuzzel --dmenu --prompt "$i_clip  " --width 60 --lines 12 | cliphist decode | wl-copy
+}
+
+case "${1:-}" in
+  system) system_menu ;;
+  theme) theme_menu ;;
+  capture) capture_menu ;;
+  settings) settings_menu ;;
+  clipboard) clipboard_menu ;;
+  *) main_menu ;;
+esac
