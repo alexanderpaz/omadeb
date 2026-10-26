@@ -23,6 +23,8 @@ SYSTEM=(
   ca-certificates gnupg xz-utils fontconfig xdg-utils xdg-user-dirs
   dbus-user-session libglib2.0-bin dconf-gsettings-backend polkitd
   network-manager network-manager-gnome blueman bluez
+  # Wi-Fi: NetworkManager necesita wpasupplicant, y firmware-linux no incluye estos firmware.
+  wpasupplicant firmware-iwlwifi firmware-realtek firmware-atheros firmware-brcm80211 rfkill
   pipewire pipewire-pulse wireplumber libspa-0.2-bluetooth pavucontrol pamixer playerctl
   brightnessctl wlr-randr
 )
