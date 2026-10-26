@@ -14,7 +14,7 @@ BUILD_DEPS=(
   libxcb1-dev libxcb-render0-dev libxcb-xfixes0-dev libxcb-icccm4-dev
   libxcb-composite0-dev libxcb-res0-dev libxcb-errors-dev libudis86-dev
   libsdbus-c++-dev libpam0g-dev libpipewire-0.3-dev libspa-0.2-dev
-  qt6-base-dev qt6-wayland-dev qt6-declarative-dev
+  qt6-base-dev qt6-wayland-dev qt6-wayland-private-dev qt6-declarative-dev
 )
 
 # Sistema: herramientas del día a día, red y periféricos.
