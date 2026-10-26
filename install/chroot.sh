@@ -65,7 +65,7 @@ systemctl enable console-setup keyboard-setup 2>/dev/null || true
 
 # --- Inicio de sesión: greetd -> Hyprland ----------------------------------------
 # agreety: login de texto simple y fiable en la consola (tuigreet falla en algunas VT/teclados).
-cmd="agreety --cmd Hyprland"
+cmd="/usr/sbin/agreety --cmd /usr/bin/Hyprland"   # agreety está en /usr/sbin, fuera del PATH de _greetd
 cat >/etc/greetd/config.toml <<CFG
 [terminal]
 vt = 1
