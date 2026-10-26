@@ -101,6 +101,8 @@ run_user 'bash ~/.local/share/omadeb/install/devtools.sh'  || echo "AVISO: devto
 run_user 'xdg-user-dirs-update'                            || true
 run_user 'xdg-settings set default-web-browser firefox-esr.desktop' || true
 run_user 'xdg-mime default thunar.desktop inode/directory' || true
+# Firefox con la escala 1.5 de la pantalla sale enorme: reduce su escala interna.
+printf '// omadeb\npref("layout.css.devPixelsPerPx", "1.15");\n' >/etc/firefox-esr/omadeb.js
 update-alternatives --set x-www-browser /usr/bin/firefox-esr 2>/dev/null || true
 
 apt-get clean

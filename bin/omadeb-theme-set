@@ -73,6 +73,7 @@ if command -v gsettings >/dev/null; then
     gset color-scheme prefer-dark
     gset gtk-theme Adwaita-dark
   fi
+  gset font-name 'Cantarell 10'
   gset icon-theme "$icon_theme"
 fi
 
