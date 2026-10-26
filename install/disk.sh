@@ -49,11 +49,14 @@ disk_partition() {
 
 disk_mount() {
   mount "$(part "$DISK" 2)" /mnt
-  if $UEFI; then
-    mkdir -p /mnt/boot/efi
-    mount "$(part "$DISK" 1)" /mnt/boot/efi
-  fi
   if (( SWAP_GIB > 0 )); then swapon "$(part "$DISK" 3)"; fi
+}
+
+# Tras mmdebstrap: exige que /mnt esté vacío (solo tolera lost+found).
+disk_mount_esp() {
+  $UEFI || return 0
+  mkdir -p /mnt/boot/efi
+  mount "$(part "$DISK" 1)" /mnt/boot/efi
 }
 
 disk_fstab() {

@@ -83,6 +83,7 @@ $UEFI && bootloader="grub-efi-amd64,shim-signed,efibootmgr"
 include="systemd-sysv,dbus,linux-image-amd64,initramfs-tools,locales,tzdata,sudo,ca-certificates,curl,gnupg,apt-utils,kmod,udev,iproute2,iputils-ping,firmware-linux,$cpu_ucode,$bootloader"
 mmdebstrap --variant=minbase --components="main non-free-firmware" --include="$include" \
   "$SUITE" /mnt "$MIRROR"
+disk_mount_esp
 
 cat >/mnt/etc/apt/sources.list <<APT
 deb $MIRROR $SUITE main non-free-firmware
