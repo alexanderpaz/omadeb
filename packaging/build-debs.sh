@@ -20,6 +20,8 @@ build() {
   sudo apt-get update
   sudo apt-get install -y --no-install-recommends "${BUILD_DEPS[@]}"
   rm -rf "$STAGE"
+  # Las marcas de "ya instalado" no sirven aquí: el stage nuevo debe recibir TODOS los componentes.
+  rm -f "${OMADEB_BUILD_DIR:-$HOME/.cache/omadeb-build}"/.done-*
   OMADEB_PREFIX=/usr OMADEB_STAGE="$STAGE" bash "$HERE/../install/build-hypr.sh"
 }
 

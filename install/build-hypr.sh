@@ -143,7 +143,7 @@ main() {
   done
   install_session_files
 
-  step "Listo: $("$PREFIX/bin/Hyprland" --version | head -1)"
+  step "Listo: $(XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}" "$PREFIX/bin/Hyprland" --version 2>/dev/null | head -1 || true)"
 }
 
 main "$@"
