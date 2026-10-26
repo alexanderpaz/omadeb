@@ -5,7 +5,7 @@
 # Solo para compilar los .deb de Hyprland (packaging/build-debs.sh). No van al sistema final.
 BUILD_DEPS=(
   git build-essential gcc-14 g++-14 cmake meson ninja-build pkg-config gettext curl
-  dpkg-dev rsync
+  dpkg-dev rsync file
   libgtest-dev libpixman-1-dev libpugixml-dev libzip-dev libcairo2-dev librsvg2-dev
   libtomlplusplus-dev libpango1.0-dev libjpeg-dev libwebp-dev libmagic-dev libpng-dev
   libheif-dev libjxl-dev libseat-dev libinput-dev libwayland-dev wayland-protocols

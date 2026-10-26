@@ -51,6 +51,7 @@ pack() {
   while IFS= read -r f; do
     file -b "$f" | grep -q ELF && targets+=("-e$f")
   done < <(find "$root/usr/bin" "$root/usr/lib" "$root/usr/libexec" -type f 2>/dev/null)
+  ((${#targets[@]})) || { echo "No se encontraron binarios ELF (¿falta el paquete «file»?)." >&2; exit 1; }
   while IFS= read -r d; do libdirs+=("-l$d"); done < <(find "$root/usr/lib" -type d)
   local deps
   deps="$(cd "$work" && dpkg-shlibdeps -O --ignore-missing-info "${libdirs[@]}" "${targets[@]}" 2>/dev/null |
