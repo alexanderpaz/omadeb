@@ -5,15 +5,23 @@
 
 disk_guard() {
   [[ -b $DISK ]] || die "$DISK no es un disco."
-  # Nunca tocar un disco con algo montado (p. ej. el medio live o el sistema en uso).
-  if lsblk -nrpo MOUNTPOINTS "$DISK" | grep -q '[^[:space:]]'; then
-    die "$DISK tiene particiones montadas. Arranca desde un live/USB e instala en otro disco."
-  fi
+  # Nunca tocar el medio del que arrancó el live (no hace falta sacarlo: elige otro disco).
+  local m
+  while read -r m; do
+    case $m in
+      /|/run/live*|/lib/live*|/usr/lib/live*|/cdrom*|/run/archiso*)
+        die "$DISK es el medio de instalación (montado en $m). Elige otro disco." ;;
+    esac
+  done < <(lsblk -nrpo MOUNTPOINTS "$DISK" | tr ' ' '\n' | grep -v '^$')
   lsblk -o NAME,SIZE,FSTYPE,LABEL,MODEL "$DISK"
   warn "SE BORRARÁ TODO EL CONTENIDO DE $DISK"
   local confirm
   read -r -p "Escribe el nombre del disco ($DISK) para confirmar: " confirm
   [[ $confirm == "$DISK" ]] || die "Cancelado."
+  # Particiones del disco elegido montadas o en uso (p. ej. automontaje): se sueltan.
+  local p
+  while read -r p; do swapoff "$p" 2>/dev/null || true; umount -R "$p" 2>/dev/null || true; done \
+    < <(lsblk -nrpo NAME "$DISK" | tac)
 }
 
 disk_partition() {

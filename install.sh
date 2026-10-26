@@ -37,6 +37,11 @@ fi
 
 # --- Herramientas del live ------------------------------------------------------------
 step "Preparando herramientas"
+# El live puede traer el USB/DVD como fuente de apt ("deb cdrom:"): se descarta, todo viene de la red.
+sed -i 's/^\(deb cdrom:\)/# \1/' /etc/apt/sources.list 2>/dev/null || true
+if ! grep -rqsE '^deb +(\[[^]]*\] *)?https?://' /etc/apt/sources.list /etc/apt/sources.list.d/; then
+  echo "deb $MIRROR $SUITE main non-free-firmware" >/etc/apt/sources.list
+fi
 apt-get update -qq
 apt-get install -y -qq mmdebstrap gdisk dosfstools e2fsprogs parted debian-archive-keyring >/dev/null
 
@@ -57,6 +62,13 @@ ask LOCALE   "Locale" "en_US.UTF-8"
 ask KEYMAP   "Distribución de teclado (us, es, latam...)" "us"
 ask SWAP_GIB "Swap en GiB (0 = sin swap)" "4"
 [[ $SWAP_GIB =~ ^[0-9]+$ ]] || die "Swap debe ser un número."
+
+# Red del sistema nuevo: obligatoria para poder usarlo tras el reinicio.
+WIFI_SSID="" WIFI_PASS=""
+if compgen -G '/sys/class/net/*/wireless' >/dev/null; then
+  ask WIFI_SSID "Wi-Fi (SSID) para el sistema nuevo (vacío = solo cable)" ""
+  if [[ -n $WIFI_SSID ]]; then ask_secret WIFI_PASS "Contraseña del Wi-Fi"; fi
+fi
 
 disk_guard
 disk_partition
@@ -100,6 +112,43 @@ done
 $UEFI && mount -t efivarfs efivarfs /mnt/sys/firmware/efi/efivars 2>/dev/null || true
 
 chroot /mnt /bin/bash /root/omadeb/install/chroot.sh
+
+# --- Red del sistema nuevo ------------------------------------------------------------------
+step "Configurando la red del sistema nuevo"
+nm_dir=/mnt/etc/NetworkManager/system-connections
+mkdir -p "$nm_dir"
+# Conexiones guardadas en el live (si usa NetworkManager).
+cp -a /etc/NetworkManager/system-connections/. "$nm_dir/" 2>/dev/null || true
+if [[ -n $WIFI_SSID ]]; then
+  nm_uuid="$(cat /proc/sys/kernel/random/uuid)"
+  (
+    umask 077
+    cat >"$nm_dir/omadeb-wifi.nmconnection" <<NM
+[connection]
+id=$WIFI_SSID
+uuid=$nm_uuid
+type=wifi
+autoconnect=true
+
+[wifi]
+mode=infrastructure
+ssid=$WIFI_SSID
+
+[wifi-security]
+key-mgmt=wpa-psk
+psk=$WIFI_PASS
+
+[ipv4]
+method=auto
+
+[ipv6]
+method=auto
+NM
+  )
+fi
+chmod 600 "$nm_dir"/* 2>/dev/null || true
+chown -R root:root "$nm_dir"
+info "Ethernet: DHCP automático. Wi-Fi: ${WIFI_SSID:-no configurado (usa nmtui)}."
 
 # --- Limpieza ------------------------------------------------------------------------------
 step "Terminando"
