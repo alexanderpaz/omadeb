@@ -37,6 +37,8 @@ pack() {
          "$root"/usr/share/hyprland-protocols/pkgconfig "$root"/usr/share/wayland-protocols \
          "$root"/usr/share/bash-completion "$root"/usr/share/fish "$root"/usr/share/zsh
   find "$root" -name '*.a' -delete
+  # Fondos de pantalla de Hyprland (~48 MB): omadeb trae su propio fondo.
+  rm -f "$root"/usr/share/hypr/wall*.png
   find "$root/usr/bin" "$root/usr/lib" -type f \( -perm -u+x -o -name '*.so*' \) \
     -exec strip --strip-unneeded {} + 2>/dev/null || true
 
