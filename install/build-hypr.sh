@@ -32,6 +32,8 @@ COMPONENTS=(
   "hypridle                    v0.1.7   cmake"
   "xdg-desktop-portal-hyprland v1.3.11  cmake"
   "hyprpicker                  v0.4.5   cmake"
+  "hyprland-qt-support         v0.1.0   cmake"
+  "hyprland-qtutils            v0.1.4   cmake"
 )
 
 WAYLAND_PROTOCOLS_VERSION=1.45
@@ -81,7 +83,7 @@ build_component() {
       sed -i 's|requestedModes.insert_range(requestedModes.end(), sortedModes \| std::views::reverse);|requestedModes.insert(requestedModes.end(), sortedModes.rbegin(), sortedModes.rend());|' src/helpers/Monitor.cpp
       sed -i 's|return m_connection ? \*m_connection : nullptr;|return m_connection ? static_cast<xcb_connection_t*>(*m_connection) : nullptr;|' src/xwayland/XWM.hpp
       ;;
-    hyprutils|hyprlang|hyprgraphics|aquamarine) extra=(-DBUILD_TESTING=OFF) ;;
+    hyprutils|hyprlang|hyprgraphics|aquamarine|hyprland-qt-support|hyprland-qtutils) extra=(-DBUILD_TESTING=OFF) ;;
   esac
 
   if [[ $system == meson ]]; then

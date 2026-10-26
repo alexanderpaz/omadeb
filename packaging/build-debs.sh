@@ -52,7 +52,8 @@ pack() {
   deps="$(cd "$work" && dpkg-shlibdeps -O --ignore-missing-info "${libdirs[@]}" "${targets[@]}" 2>/dev/null |
     sed -n 's/^shlibs:Depends=//p')"
   # Hyprland también necesita en ejecución: datos de pantallas y polkit/portales.
-  deps="${deps:+$deps, }hwdata, xwayland, xdg-desktop-portal"
+  # hyprland-qtutils (diálogos de Hyprland) carga QML en ejecución.
+  deps="${deps:+$deps, }hwdata, xwayland, xdg-desktop-portal, qt6-wayland, qml6-module-qtquick, qml6-module-qtquick-controls, qml6-module-qtquick-layouts, qml6-module-qtquick-templates, qml6-module-qtquick-window, qml6-module-qtqml-workerscript"
 
   mkdir -p "$root/DEBIAN" "$OUT"
   cat >"$root/DEBIAN/control" <<CTRL
@@ -66,7 +67,7 @@ Depends: $deps
 Provides: hyprland
 Conflicts: hyprland
 Description: Hyprland y su ecosistema para omadeb
- Hyprland, hyprlock, hypridle, hyprpicker, hyprcursor y xdg-desktop-portal-hyprland,
+ Hyprland, hyprlock, hypridle, hyprpicker, hyprland-qtutils, hyprcursor y xdg-desktop-portal-hyprland,
  compilados contra Debian 13 con las versiones fijadas en install/build-hypr.sh.
 CTRL
   printf '#!/bin/sh\nset -e\nldconfig\n' >"$root/DEBIAN/postinst"
