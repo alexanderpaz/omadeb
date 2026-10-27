@@ -36,7 +36,7 @@ DESKTOP=(
   waybar mako-notifier libnotify-bin swayosd fuzzel swaybg
   alacritty btop fastfetch starship eza zoxide fzf bat ripgrep fd-find neovim lazygit
   grim slurp swappy wl-clipboard cliphist wf-recorder
-  fonts-jetbrains-mono fonts-noto-color-emoji fonts-font-awesome yaru-theme-icon
+  fonts-jetbrains-mono fonts-noto-color-emoji fonts-noto-core fonts-font-awesome yaru-theme-icon
   adwaita-icon-theme gnome-themes-extra
   imv mpv firefox-esr
 )
