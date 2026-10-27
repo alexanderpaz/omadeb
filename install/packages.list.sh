@@ -27,6 +27,7 @@ SYSTEM=(
   wpasupplicant firmware-iwlwifi firmware-realtek firmware-atheros firmware-brcm80211 rfkill
   pipewire pipewire-pulse wireplumber libspa-0.2-bluetooth pavucontrol pamixer playerctl
   brightnessctl wlr-randr
+  fprintd libpam-fprintd   # lector de huellas (desbloqueo de hyprlock)
 )
 
 # Escritorio Hyprland (sin Hyprland: ese viene en el .deb de omadeb).
